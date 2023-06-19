@@ -1,6 +1,6 @@
 import "./index.css";
 
-import { useState, } from "react";
+import { useEffect, useState } from "react";
 
 import { format } from "date-fns";
 
@@ -17,7 +17,17 @@ const Appointments = () => {
 
   const [starbtn, setstarbtn] = useState(false);
 
+  useEffect(() => {
+    const storedArray = localStorage.getItem("local");
+    if (storedArray !== null) {
+      const parsedArray = JSON.parse(storedArray);
+      setappointmentarraylist(parsedArray);
+    }
+  }, []);
 
+  useEffect(() => {
+    localStorage.setItem("local", JSON.stringify(appointmentarraylist));
+  }, [appointmentarraylist]);
 
   const onclickTitle = (event) => {
     settitle(event.target.value);
@@ -27,7 +37,7 @@ const Appointments = () => {
     setdate(event.target.value);
   };
 
-  const onsubmitForm = (event) => {
+  const onsubmitForm = async (event) => {
     event.preventDefault();
     if (title === "") {
       alert("Enter Title");
@@ -35,25 +45,27 @@ const Appointments = () => {
       alert("Enter Date");
     } else {
       const formatDate = format(new Date(date), "dd MMMM yyyy, EEEE");
+      const upperLetter = title.slice(0, 1).toLocaleUpperCase();
+      const localletter = title.slice(1);
 
+      const connnect = upperLetter.concat(localletter);
       const newappointmentsobject = {
         id: uuidv4(),
-        title,
+        title: connnect,
         date: formatDate,
         isStar: false,
       };
-      setappointmentarraylist((prev) => [...prev, newappointmentsobject])
-      settitle('')
-      setdate('')
-      
+      setappointmentarraylist([...appointmentarraylist, newappointmentsobject]);
+      settitle("");
+      setdate("");
     }
   };
 
   const toggleStarBtn = (id) => {
     setappointmentarraylist(
-      appointmentarraylist.filter((each) => {
+      appointmentarraylist.map((each) => {
         if (each.id === id) {
-          return (each.isStar = true);
+          return { ...each, isStar: !each.isStar };
         }
         return each;
       })
@@ -65,16 +77,14 @@ const Appointments = () => {
   };
 
   const filterItems = () => {
-    if(starbtn === true){
-      return appointmentarraylist.filter(each => each.isStar === true)
+    if (starbtn === true) {
+      return appointmentarraylist.filter((each) => each.isStar === true);
     }
-    return appointmentarraylist
-   
-  }
+    return appointmentarraylist;
+  };
 
-  const starItems = filterItems()
+  const starItems = filterItems();
 
-  
   return (
     <div className="bg-clr-container">
       <div className="bg-wht-container">
@@ -92,7 +102,9 @@ const Appointments = () => {
               value={title}
               onChange={onclickTitle}
             />
-            <label htmlFor="date">Date</label>
+            <label htmlFor="date" className="label">
+              Date
+            </label>
             <input
               id="date"
               type="date"
@@ -126,15 +138,19 @@ const Appointments = () => {
           )}
         </div>
         <ul className="apmt-list">
-          {starItems.length > 0 ?  starItems.map((each) => {
-            return (
-              <AppointmentsList
-                each={each}
-                key={each.id}
-                toggleStarBtn={toggleStarBtn}
-              />
-            );
-          }) : <h1 className="emp">Sorry No Date Found</h1>}
+          {starItems.length !== 0 ? (
+            starItems.map((each) => {
+              return (
+                <AppointmentsList
+                  each={each}
+                  key={each.id}
+                  toggleStarBtn={toggleStarBtn}
+                />
+              );
+            })
+          ) : (
+            <p className="emp">Sorry No Date Found</p>
+          )}
         </ul>
       </div>
     </div>
