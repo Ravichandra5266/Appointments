@@ -13,17 +13,13 @@ const Appointments = () => {
 
   const [date, setdate] = useState("");
 
-  const [appointmentarraylist, setappointmentarraylist] = useState([]);
+  const localData = JSON.parse(localStorage.getItem('local'))
+
+  const [appointmentarraylist, setappointmentarraylist] = useState(localData!== null ? localData : [] );
 
   const [starbtn, setstarbtn] = useState(false);
 
-  useEffect(() => {
-    const storedArray = localStorage.getItem("local");
-    if (storedArray !== null) {
-      const parsedArray = JSON.parse(storedArray);
-      setappointmentarraylist(parsedArray);
-    }
-  }, []);
+ 
 
   useEffect(() => {
     localStorage.setItem("local", JSON.stringify(appointmentarraylist));
